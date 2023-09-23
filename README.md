@@ -29,7 +29,7 @@ python plaza.py -i config.ini -o output.xml -f
 - `config/` - sample config
 - `icons/` - contains topic icons
 - `painting/` - contains post paintings
-- `config.ini` - config example, edit as necessary
+- `config.ini` - config to generate xml - edit as necessary
 - `plaza.py` - this is where the magic happens!
 - `README.md` - you are here
 
@@ -76,7 +76,7 @@ person = "
     "
 ```
 
-- `person` each lines contains separate `mii` code plus screen name separate by a space (no spaces allowed in the name)
+- `person` each line contains a separate `mii` code plus screen name separate by a space (no spaces allowed in the name)
 
 People are selected for topic posts in the order they appear. The mii code is not editable as it is protected by a checksum. Note that screen names are not actually used - there must be a separate list somewhere...
 
@@ -93,20 +93,20 @@ People are selected for topic posts in the order they appear. The mii code is no
 ...
 ```
 
-These sections contain default values for the XML section - some are *essential*, but many may be omitted and the XML will still work fine.
+These sections contain default values for the XML - some are *essential*, but many may be omitted and the XML will still work fine.
 
 - `modified_at` if empty will use the current datetime
 - `created_at` if empty will use the current datetime
 
 ## Config
 
-- `config/base.ini` produces *near-identical* XML to the orignal GBATEMP thread
+- `config/base.ini` generates *near-identical* XML to the orignal GBATEMP thread
   - Some image base64 code is different
   - Some special characters in the post body dont require escaping
   - Post title_ids now match topic title_ids
-- `config/original.ini` produces *near-identical* XML to a factory reset WiiU
+- `config/original.ini` generates *near-identical* XML to a factory reset WiiU
   - Empty lines and incorrect indentation fixed
-- `config.ini` produces heavily trimmed XML with example content
+- `config.ini` generates heavily trimmed XML with example content
 
 ## Images
 
@@ -122,7 +122,7 @@ All images are run through the image library to resize & convert them as necessa
   - For Mii pictures this means the Mii simply will not appear
   - For Topic icons this means the Plaza will **freeze**
 
-If the system freezes hard-reboot into the homebrew launcher (hold X while powering on) and replace the XML with the last good version.
+If the system freezes hard-reboot into the homebrew launcher (with Tiramisu hold X while powering on) and replace the XML with the last good version.
 
 ## Credits
 
