@@ -63,7 +63,7 @@ If `icon` is omitted the `icons/` folder will be scanned for [png, tga] files ma
 
 The `community_id` and `reply_count` are used to generate XML similar to the base XML, and are not required for normal use.
 
-Posts should be around `60` characters, anything over usually gets cropped.
+Posts should be around 60 characters, anything over usually gets cropped.
 
 ### People
 
@@ -120,5 +120,6 @@ If the system freezes hard-reboot into the homebrew launcher (hold X while power
 
 Thanks to MikaDubbz & CaramelKat for making this possible
 
-- https://gbatemp.net/threads/i-permanently-gave-wara-wara-plaza-life-again-injected-it-full-of-my-personality-and-you-can-too.562257
-- https://github.com/CaramelKat/WaraWaraPlazaBase64Encoder
+- [gbatemp](https://gbatemp.net/threads/i-permanently-gave-wara-wara-plaza-life-again-injected-it-full-of-my-personality-and-you-can-too.562257) - technique founder and guide
+- [WaraWaraPlazaBase64Encoder](https://github.com/CaramelKat/WaraWaraPlazaBase64Encoder) - image formatting
+- [archiverse](https://archiverse.guide/) - miiverse backup, great paintings in here
