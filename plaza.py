@@ -87,7 +87,7 @@ def encode_image(value, size):
     if len(value) > max_path_len:
         return value
     data = image_bytes(valid_image_path(value), size)
-    return base64.b64encode(zlib.compress(data, 6)).decode("ascii")
+    return base64.b64encode(zlib.compress(data, 6)).decode()
 
 
 def topic_image(value):
@@ -98,6 +98,10 @@ def post_image(value):
     return encode_image(value, post_image_size)
 
 
+def get_section(config, name):
+    return config[name] if config.has_section(name) else None
+
+
 def default_elements(target, source):
     for key, val in source.items():
         ET.SubElement(target, key).text = val
@@ -105,9 +109,10 @@ def default_elements(target, source):
 
 
 def optional_text(element, sub, text):
-    e = element.find(sub)
-    if e != None:
-        e.text = text
+    if text != None:
+        e = element.find(sub)
+        if e != None:
+            e.text = text
 
 
 # --------------------------------------------------
@@ -118,10 +123,11 @@ class Topic:
     def __init__(self, data):
         self.name = data.get("name")
         self.title_id = hex_to_dec(data.get("title_id"))
-        self.community_id = data.get("community_id", "0")
+        self.community_id = data.get("community_id")
         self.is_recommended = data.get("is_recommended", "0")
         self.icon = topic_image(data.get("icon", self.title_id))
         self.reply_count = data.get("reply_count", "0").split(",")
+        self.feeling_id = data.get("feeling_id", "0").split(",")
         self.posts = [html.unescape(item) for item in split_str(data.get("posts"))]
 
 
@@ -137,10 +143,13 @@ class Person:
 config = configparser.ConfigParser()
 config.read(args.input)
 
-result_default = config["result.default"]
-topic_default = config["topic.default"]
-post_default = config["post.default"]
-painting_default = config["painting.default"]
+result_default = get_section(config, "result.default")
+topic_default = get_section(config, "topic.default")
+post_default = get_section(config, "post.default")
+painting_default = get_section(config, "painting.default")
+screenshot_default = get_section(config, "screenshot.default")
+topic_tag_default = get_section(config, "topic_tag.default")
+data_default = get_section(config, "data.default")
 
 topic_data = [Topic(config[f"topic.{i}"]) for i in range(0, 10)]
 people_data = [
@@ -172,18 +181,27 @@ def post_painting(post, body):
     return post
 
 
-def person_element(body, reply_count=0):
+def person_element(body, title_id, feeling_id, reply_count):
     person = ET.Element("person")
     posts = ET.SubElement(person, "posts")
     post = ET.SubElement(posts, "post")
     default_elements(post, post_default)
+    if post.find("data") != None:
+        default_elements(post.find("data"), data_default)
+    if post.find("screenshot") != None:
+        default_elements(post.find("screenshot"), screenshot_default)
+    if post.find("topic_tag") != None:
+        default_elements(post.find("topic_tag"), topic_tag_default)
+        optional_text(post.find("topic_tag"), "title_id", title_id)
     data = next_person()
     post.find("body").text = body
     post.find("mii").text = data.mii
     post.find("screen_name").text = data.screen_name
     post.find("created_at").text = now_if_empty(post.find("created_at").text)
-    post_painting(post, body)
+    optional_text(post, "feeling_id", feeling_id)
     optional_text(post, "reply_count", reply_count)
+    optional_text(post, "title_id", title_id)
+    post_painting(post, body)
     return person
 
 
@@ -198,7 +216,9 @@ def topic_element(data: Topic):
     optional_text(topic, "community_id", data.community_id)
     p = topic.find("people")
     for i, body in enumerate(data.posts):
-        p.append(person_element(body, data.reply_count[i % len(data.reply_count)]))
+        feeling_id = data.feeling_id[i % len(data.feeling_id)]
+        reply_count = data.reply_count[i % len(data.reply_count)]
+        p.append(person_element(body, data.title_id, feeling_id, reply_count))
     return topic
 
 
@@ -216,9 +236,13 @@ def result_element():
 
 tree = ET.ElementTree(result_element())
 ET.indent(tree, space="  ", level=0)
-xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(
-    tree.getroot(), encoding="utf-8", method="xml", short_empty_elements=False
-).decode("ascii")
+xml = (
+    '<?xml version="1.0" encoding="UTF-8"?>\n'
+    + ET.tostring(
+        tree.getroot(), encoding="utf-8", method="xml", short_empty_elements=False
+    ).decode()
+)
+# .decode("ascii")
 
 if args.output != None:
     with open(args.output, "w") as f:

@@ -1,4 +1,4 @@
-# WaraWara Plaza XML Generator v0.1
+# WaraWara Plaza XML Generator v0.2
 
 **USE AT YOUR OWN RISK - EDITING NAND CAN BRICK YOUR SYSTEM - READ ALL INSTRUCTIONS & GBATEMP THREAD FIRST**
 
@@ -26,9 +26,9 @@ python plaza.py -i config.ini -o output.xml -f
 
 ## Package Contents
 
+- `config/` - sample config
 - `icons/` - contains topic icons
 - `painting/` - contains post paintings
-- `base.ini` - config to produce XML nearly identical to the base XML
 - `config.ini` - config example, edit as necessary
 - `plaza.py` - this is where the magic happens!
 - `README.md` - you are here
@@ -57,11 +57,12 @@ Requires `[topic.0]` through `[topic.9]`
 - `icon` (optional) path to image (any format), or pre-formatted base64 tga (not recommended)
 - `is_recommended` (optional) set to 1 to display a highlighted frame
 - `reply_count` (optional) comma delimited count for post replies (not recommended)
+- `feeling_id` (optional) comma delimited ids for post feelings (not recommended)
 - `posts` each line contains a separate message
 
 If `icon` is omitted the `icons/` folder will be scanned for [png, tga] files matching the `title_id` [dec, hex] - the XML will not build if no image is found.
 
-The `community_id` and `reply_count` are used to generate XML similar to the base XML, and are not required for normal use.
+The `community_id`, `reply_count` and `feeling_id` are used to generate XML similar to the original XML, and are not required for normal use.
 
 Posts should be around 60 characters, anything over usually gets cropped.
 
@@ -83,22 +84,29 @@ People are selected for topic posts in the order they appear. The mii code is no
 
 ```ini
 [result.default]
-...
-
 [topic.default]
-...
-
 [post.default]
-...
-
 [painting.default]
+[data.default]
+[screenshot.default]
+[topic_tag.default]
 ...
 ```
 
-These sections contain default values for the XML section - some are *essential*, but many may be omitted and the XML will still work fine (compare `base.ini` to the trimmed down `config.ini`).
+These sections contain default values for the XML section - some are *essential*, but many may be omitted and the XML will still work fine.
 
 - `modified_at` if empty will use the current datetime
 - `created_at` if empty will use the current datetime
+
+## Config
+
+- `config/base.ini` produces *near-identical* XML to the orignal GBATEMP thread
+  - Some image base64 code is different
+  - Some special characters in the post body dont require escaping
+  - Post title_ids now match topic title_ids
+- `config/original.ini` produces *near-identical* XML to a factory reset WiiU
+  - Empty lines and incorrect indentation fixed
+- `config.ini` produces heavily trimmed XML with example content
 
 ## Images
 
