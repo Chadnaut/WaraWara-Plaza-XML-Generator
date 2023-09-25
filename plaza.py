@@ -32,18 +32,34 @@ CR = "\n"
 config = configparser.ConfigParser(allow_no_value=True)
 post_index = 0
 
+result_defaults = {
+    "version": "1",
+    "request_name": "topics",
+    "expire": "2100-01-01 10:00:00",
+}
+
+post_painting_defaults = {
+    "format": "tga",
+    "content": "",
+    "size": "153618",
+}
+
 # --------------------------------------------------
 # General Helpers
 
 
+def is_dec(text):
+    return text != None and re.search("^\d+$", text) != None
+
+
 def hex_to_dec(text):
     """Convert hex to decimal if text starts with 0, otherwise return text"""
-    return str(int(text, 16)) if len(text) and text[0] == "0" else text
+    return str(int(text, 16)) if text != None and len(text) and text[0] == "0" else text
 
 
 def dec_to_hex(text):
     """Convert decimal to hex if text is all digits, otherwise return 0"""
-    return hex(int(text)).replace("0x", "00") if re.search("^\d+$", text) else "0"
+    return hex(int(text)).replace("0x", "00") if is_dec(text) else "0"
 
 
 def strip_quotes(text):
@@ -131,6 +147,8 @@ def image_bytes(path, size):
 
 def encode_image(value, size):
     """Encode image for xml embedding"""
+    if value == None:
+        sys.exit("Missing image")
     if len(value) > max_path_len:
         return value
     path = get_valid_image(value)
@@ -266,14 +284,24 @@ def set_sub_datetime(element, name):
         set_sub_text(element, name, datetime_now())
 
 
+def set_sub_defaults(element, defaults):
+    """Set sub text values if they dont exist"""
+    for key in defaults:
+        if element.find(key) == None:
+            set_sub_text(element, key, defaults[key])
+
+
 # --------------------------------------------------
 # XML Elements
 
 
 def post_painting(element, value):
     """Embed image into post painting content"""
-    painting = element.find("painting")
-    if painting != None and get_valid_image(value) != None:
+    if get_valid_image(value) != None:
+        painting = element.find("painting")
+        if painting == None:
+            painting = ET.SubElement(element, "painting")
+            set_sub_defaults(painting, post_painting_defaults)
         set_sub_text(element, "body", "")
         set_sub_text(painting, "content", encode_image(value, post_image_size))
     return element
@@ -324,14 +352,16 @@ def topic_element(section):
     topic = ET.Element("topic")
     set_element_section(topic, get_config_section("topic.default"))
     set_element_section(topic, section, ["posts"])
-    title_id = get_sub_text(topic, "title_id")
+    title_id = hex_to_dec(get_sub_text(topic, "title_id"))
     icon = encode_image(get_sub_text(topic, "icon") or title_id, topic_image_size)
-    set_sub_text(topic, "title_id", hex_to_dec(title_id))
+    set_sub_text(topic, "title_id", title_id)
     set_sub_text(topic, "icon", icon)
     set_sub_datetime(topic, "modified_at")
     people = get_subelement(topic, "people")
-    for body in [html.unescape(item) for item in split_str(section.get("posts", ""))]:
-        people.append(person_element(body, topic))
+    posts = section.get("posts")
+    if posts != None:
+        for body in [html.unescape(item) for item in split_str(posts)]:
+            people.append(person_element(body, topic))
     return topic
 
 
@@ -339,8 +369,12 @@ def result_element():
     """Create result element from config"""
     result = ET.Element("result")
     set_element_section(result, get_config_section("result.default"))
+    set_sub_defaults(result, result_defaults)
     topics = get_subelement(result, "topics")
-    for topic in [get_config_section(f"topic.{i}") for i in range(0, topic_count)]:
+    for name in [f"topic.{i}" for i in range(0, topic_count)]:
+        topic = get_config_section(name)
+        if topic == None:
+            sys.exit(f"Missing topic: {name}")
         topics.append(topic_element(topic))
     return result
 
@@ -371,7 +405,8 @@ def prune_paintings(element):
     """Remove painting elements that dont have content"""
     for post in element.findall(".//post"):
         for painting in post.findall("painting"):
-            if painting.find("content").text == "":
+            content = painting.find("content")
+            if content == None or content.text == "":
                 post.remove(painting)
 
 
@@ -505,8 +540,9 @@ def write_plaza_ini(path):
 def write_plaza_xml(path):
     """Write plaza xml to path"""
     if can_overwrite(create_path(path)):
+        xml = create_plaza_xml()
         with open(path, "w") as f:
-            f.write(create_plaza_xml())
+            f.write(xml)
 
 
 # --------------------------------------------------
