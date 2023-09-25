@@ -28,7 +28,7 @@ python plaza.py -f 1stNUP.xml config.ini
 
 ## Walkthrough
 
-First you will need to generate a `config.ini`, either from your own XML or one of the `samples/` provided:
+First you will need to generate `config.ini`, either from your own XML or one of the `samples/` provided:
 
 - `1stNUP.base.xml` - As seen in the GBATEMP thread
 - `1stNUP.default.xml` - From a factory reset WiiU
@@ -40,7 +40,7 @@ I recommend using the `min.xml` as it contains only the essential items and prod
 python plaza.py samples/1stNUP.min.xml test/config.ini
 ```
 
-The file `test/config.ini` will be created, as well as the folder `test/images` which contains the exported images. Edit the `topic.#` sections in `test/config.ini` to change what gets displayed:
+The file `test/config.ini` will be created, as well as the folder `test/images` which contains the exported images. Edit the `topic.#` sections in `test/config.ini` to change what gets displayed in the plaza:
 
 ### Topics
 
@@ -84,12 +84,12 @@ disinherit = 1
 prune = 1
 ```
 
-- `quirks` generates 1:1 *default* xml, which has formatting errors
-- `quotes` generates very close *base* xml, which has unnecessary `&quot;`
-- `disinherit` generates very close *base* xml, which omits `title_id` from posts
+- `quirks` generates 1:1 *default* xml (which has formatting issues)
+- `quotes` replaces `"` with `&quot;` for *base* xml (which is unnecessary)
+- `disinherit` prevents posts inheriting topic `title_id` and `community_id`, used by *base* xml
 - `prune` removes xml elements that are empty or contain "0"
 
-The only important setting `prune`, the others are purley for legacy xml reproduction.
+The only useful setting is `prune`, the others are purley for legacy xml reproduction.
 
 ### People
 
@@ -145,16 +145,16 @@ Be sure to read the GBATEMP thread before using this XML, there *may* be complic
 
 Improperly formatted image content prevents the XML element from being recognised:
 
-  - For Mii pictures this means the Mii will simply not appear
+  - For Post pictures this means the Mii will simply not appear
   - For Topic icons this means the Plaza will **freeze**
 
-I had freezes occur many times during development. Using Tiramisu on a 5.5.5 E WiiU I simply hard-reboot into the homebrew launcher (hold X while powering on) and replaced the XML with the last good version.
+I had freezes occur many times during development. Using Tiramisu on a 5.5.5 E WiiU I simply hard-rebooted into the homebrew launcher (hold X while powering on) and replaced the XML with the last good version.
 
 I have experienced no freezes since I added the image library to the script.
 
 ## Credits
 
-Thanks to MikaDubbz & CaramelKat for making this possible
+Thanks to MikaDubbz & CaramelKat for making this possible.
 
 - [gbatemp](https://gbatemp.net/threads/i-permanently-gave-wara-wara-plaza-life-again-injected-it-full-of-my-personality-and-you-can-too.562257) - technique founder and guide
 - [WaraWaraPlazaBase64Encoder](https://github.com/CaramelKat/WaraWaraPlazaBase64Encoder) - image formatting

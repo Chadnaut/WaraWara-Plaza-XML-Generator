@@ -61,9 +61,9 @@ def escape_body(text):
     return text.replace("\n", "&#13;").replace('"', "&quot;")
 
 
-def datetime_now(text=None):
-    """Return datetime string if passed text is empty"""
-    return text or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def datetime_now():
+    """Return datetime string"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 # --------------------------------------------------
@@ -259,6 +259,13 @@ def set_sub_text(element, name, text):
         get_subelement(element, name).text = text
 
 
+def set_sub_datetime(element, name):
+    """Update element text with datetime if it exists and is empty"""
+    sub = element.find(name)
+    if sub != None and sub.text == "":
+        set_sub_text(element, name, datetime_now())
+
+
 # --------------------------------------------------
 # XML Elements
 
@@ -303,8 +310,7 @@ def person_element(body, topic):
     set_sub_text(post, "body", body)
     set_sub_text(post, "mii", mii)
     set_sub_text(post, "screen_name", screen_name)
-    if post.find("create_at") != None:
-        set_sub_text(post, "created_at", datetime_now(get_sub_text(post, "created_at")))
+    set_sub_datetime(post, "created_at")
     post_additional(post, "post", post_index)
     post_painting(post, body)
     if get_config_section("plaza").get("disinherit") != "1":
@@ -322,6 +328,7 @@ def topic_element(section):
     icon = encode_image(get_sub_text(topic, "icon") or title_id, topic_image_size)
     set_sub_text(topic, "title_id", hex_to_dec(title_id))
     set_sub_text(topic, "icon", icon)
+    set_sub_datetime(topic, "modified_at")
     people = get_subelement(topic, "people")
     for body in [html.unescape(item) for item in split_str(section.get("posts", ""))]:
         people.append(person_element(body, topic))
@@ -370,12 +377,12 @@ def prune_paintings(element):
 
 def prune_elements(element):
     """Remove empty or zero value elements"""
-    for child in element:
-        prune_elements(child)
-        if len(child) == 0 and (
-            child.text == None or child.text == "" or child.text == "0"
-        ):
-            element.remove(child)
+    for child in list(element):
+        if len(child) > 0:
+            prune_elements(child)
+        else:
+            if child.text == None or child.text == "" or child.text == "0":
+                element.remove(child)
 
 
 def has_quirks(path):
@@ -421,12 +428,13 @@ def create_plaza_xml():
     """Return xml content from global config"""
     plaza = get_config_section("plaza")
     tree = ET.ElementTree(result_element())
+    result = tree.getroot()
     if plaza.get("prune") == "1":
-        prune_paintings(tree.getroot())
-        prune_elements(tree.getroot())
+        prune_paintings(result)
+        prune_elements(result)
     ET.indent(tree, space="  ", level=0)
     xml = ET.tostring(
-        tree.getroot(), encoding="utf-8", method="xml", short_empty_elements=False
+        result, encoding="utf-8", method="xml", short_empty_elements=False
     ).decode()
     if plaza.get("quirks") == "1":
         xml = add_quirks(xml)
